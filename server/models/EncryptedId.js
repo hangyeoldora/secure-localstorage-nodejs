@@ -8,7 +8,9 @@ module.exports = (sequelize, DataTypes)=> {
         },
         hash: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
+            primaryKey: true,
+            unique: true
         }, 
         key: {
             type: DataTypes.STRING,
@@ -17,4 +19,4 @@ module.exports = (sequelize, DataTypes)=> {
     });
 
     return EncryptedId;
-}
+}  
