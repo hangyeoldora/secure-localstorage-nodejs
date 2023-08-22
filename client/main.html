@@ -70,8 +70,7 @@
 
     // data, pk, salt
     const hashData = async (mac, pk, salt) => {
-      const sha3Hash = await CryptoJS.SHA3(mac, salt, { outputLength: 128 }); // 해시값 (Dv, salt);
-      console.log(sha3Hash.toString());
+      const sha3Hash = await CryptoJS.SHA3(mac+salt, { outputLength: 128 }).toString(CryptoJS.enc.Hex); // 해시값 (Dv, salt);
 
       /** aes - test */
       // const cipher = await CryptoJS.AES.encrypt(sha3Hash, pk, { iv: salt }); // 암호화
@@ -79,20 +78,20 @@
       // const decrypt = await CryptoJS.AES.decrypt(cipher, pk, { iv: salt }); // 복호화 test
       // console.log(decrypt.toString());
 
+      /** 서버로부터 받은 PK를 이용한 해시값(Dv||Salt) 암호화 */
       const encryptor = new JSEncrypt();
       encryptor.setPublicKey(pk);
-      // 암호화
-      const encrypted = encryptor.encrypt(mac);
-      console.log('Encrypted:', encrypted);
+      const encrypted = encryptor.encrypt(sha3Hash);
+      console.log('암호화된 해시값:', encrypted);
+      console.log('mac:', mac);
 
-
-      // pk, sk로 암, 복호화 테스트 -> 성공
+      /** -- pk, sk로 암, 복호화 테스트 -> 성공 */
       // console.log(mac)
-//       const privateKey = `${sk 넣기} `;
-//       var decrypt = new JSEncrypt();
-//       decrypt.setPrivateKey(privateKey);
-//       var uncrypted = decrypt.decrypt(encrypted);
-//       console.log('Decrypted:', uncrypted);
+      // const privateKey = `${sk 넣기} `;
+      // var decrypt = new JSEncrypt();
+      // decrypt.setPrivateKey(privateKey);
+      // var uncrypted = decrypt.decrypt(encrypted);
+      // console.log('Decrypted:', uncrypted);
 
       await fetch('http://localhost:3002/setDb', {
         method: 'POST',
