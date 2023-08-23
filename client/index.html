@@ -14,7 +14,7 @@
 <body>
     <script>
 
-        const aes256SecretKey = "ThirdParty--HuNeT-SSO---LINK-KEY"; // key 값 32 바이트
+        const aes256SecretKey = "YrvfhEoPhjAGC28R1q78zkD2ydrEcIxs"; // key 값 32 바이트
         const aes256Iv = CryptoJS.lib.WordArray.random(16); // iv 16 바이트
         let aes256EncodeData = "";
         let aes256DecodeData = "";
@@ -45,7 +45,6 @@
             // console.log('hashedResult:', key);
             // console.log('decrypted:', decrypted.toString());
             // console.groupEnd();
-            // [aes256 디코딩 함수 호출 실시]
         })();
 
         function aes256Encode(data, secretKey, Iv) {
@@ -76,8 +75,6 @@
             );
 
             aes256DecodeData = cipher.toString(CryptoJS.enc.Utf8);
-            console.log("");
-            console.log("decode");
             console.log("data : " + aes256DecodeData);
         }
     </script>
