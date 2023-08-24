@@ -68,7 +68,7 @@
 4. 클라이언트
    - 서버로부터 암호화 처리된 Dv 값을 받음
    - localStorage의 salt와 받은 공개키(Pk)로 해시값(h(Dv||Salt)) 생성
-   - 해시값 해싱은 SHA3로 하며, output 길이는 128로 설정
+   - 해시값 해싱은 SHA3로 하며, output 길이는 256으로 설정
    - 공개키(Pk)로 해시값(h(Dv||Salt))을 <u>RSA 암호화</u>(JSencrypt 라이브러리) => 암호문(enc(h(Dv||Salt), Pk)) 생성
    - 서버에 암호키 생성 요청을 하면서 암호문(enc(h(Dv||Salt), Pk) ) 전달
 
@@ -184,7 +184,7 @@
 
   
 
-- sequelize의 설정 파일(config.js)의 mySQL db 정보 및 고유 식별 정보 암&middot;복호화에 사용하는 공개키, 비밀키 값은 **환경 변수 파일(.env) 생성 필요** (server 폴더 최상단 위치)
+- sequelize의 설정 파일(config.js)의 MySQL db 정보 및 고유 식별 정보 암&middot;복호화에 사용하는 공개키, 비밀키에 사용되는 값 정보가 담긴 **환경 변수 파일(.env) 생성 필요** (server 폴더 최상단 위치)
 
   ```javascript
   MYSQL_USER = root
