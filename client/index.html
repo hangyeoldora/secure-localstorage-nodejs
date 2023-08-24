@@ -2,82 +2,391 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
-        integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>웹 로컬스토리지 암&middot;복호화</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
+    integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.min.js"
+    integrity="sha512-zDvrqenA0eFJZCxBsryzUZcvihvNlEXbteMv62yRxdhR4s7K1aaz+LjsRyfk6M+YJLyAJEuuquIAI8I8GgLC8A=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 
 <body>
-    <script>
+  <h2>웹 로컬스토리지 암&middot;복호화</h2>
+  <p class="resultStr">대기 중</p>
+  <input class="saveItem" type="name" />
+  <button class="saveBtn" type="button">저장</button>
+  <input class="loadItem" type="name" readonly/>
+  <button class="loadBtn" type="button">불러오기</button>
+  <script>
+    // 로컬스토리지 없을 경우, 생성
+    if (!localStorage.getItem('salt')) {
+      const salt = CryptoJS.lib.WordArray.random(128 / 8).toString(CryptoJS.enc.Hex);
+      localStorage.setItem('salt', salt);
+    }
 
-        const aes256SecretKey = "YrvfhEoPhjAGC28R1q78zkD2ydrEcIxs"; // key 값 32 바이트
-        const aes256Iv = CryptoJS.lib.WordArray.random(16); // iv 16 바이트
-        let aes256EncodeData = "";
-        let aes256DecodeData = "";
+    // aes secret key, mac주소 디코딩용도 -> 추후 env 설정
+    const secretKey = "YrvfhEoPhjAGC28R1q78zkD2ydrEcIxs";
+    let macAddr = null;
+    let serverPk = null;
+    let decodeStr = null;
+    let originSecretKey = null;
+    const resultStr = document.querySelector('.resultStr');
+    const saveBtn = document.querySelector('.saveBtn');
+    const loadBtn = document.querySelector('.loadBtn');
+    const saveInput = document.querySelector('.saveItem');
+    const loadInput = document.querySelector('.loadItem');
 
-        // 실행
-        (async ()=> {
-            const salt = await CryptoJS.lib.WordArray.random(16); // salt 난수 생성
-            
-            await aes256Encode("TEST", aes256SecretKey, aes256Iv);
-            await aes256Decode(aes256EncodeData, aes256SecretKey, aes256Iv); 
+    /** 난수 생성 */
+    const genRandomKey = () => {
+      const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let randKey = '';
+      for (let i = 0; i < 32; i++) {
+        randKey += charSet.charAt(Math.floor(Math.random() * charSet.length));
+      };
+      return randKey;
+    };
 
-            // var testing = await CryptoJS.SHA3(`amazing${salt.words.join("")}`, { outputLength: 128 });
-            // var salt2 = CryptoJS.lib.WordArray.random(16);
+    /** 서버로부터 mac 주소(aes256), pk 요청 */
+    const getMacData = async () => {
+      const saltItem = localStorage.getItem('salt');
+      return await fetch('http://localhost:3002/getMac', {
+      method: 'POST',
+      body: JSON.stringify({ saltItem }),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => response.json())
+      .then(res => { return res.macAddress })
+      .catch(err => console.log('err', err));
+    };
+    
+    /** 공개키(pk) 추출 */
+    const getPkData = async () => await fetch('http://localhost:3002/getPk')
+      .then(response => response.json())
+      .then(res => { return res.pk })
+      .catch(err => console.log('err', err));
 
-            // var plaintext = "testing";
-            // var key = CryptoJS.PBKDF2("nice", salt2, { keySize: 256 / 32, iterations: 1000 });
-            // var encrypted = CryptoJS.AES.encrypt(plaintext, key, { iv: salt2 }); // data, key, iv
-            // var decrypted = CryptoJS.AES.decrypt(encrypted, key, { iv: salt2 });
-            // var encryptedHex = encrypted.ciphertext.toString(CryptoJS.enc.Hex);
-            // var sha3Hash = CryptoJS.SHA3(encryptedHex, { outputLength: 256 });
-            // var hashedResult = sha3Hash.toString(CryptoJS.enc.Hex);
-            
-            // console.group('salt2 aes-sha3');
-            // console.log('key:', key);
-            // console.log('encrypted:', encrypted.toString());
-            // console.log('encryptedHex:', encryptedHex.toString());
-            // console.log('sha3Hash:', sha3Hash);
-            // console.log('hashedResult:', key);
-            // console.log('decrypted:', decrypted.toString());
-            // console.groupEnd();
-        })();
+    /** mac 주소 일치 여부 파악용 - aes 디코딩 */
+    const aes256Decode = (data, secretKey, Iv) => {
+      const cipher = CryptoJS.AES.decrypt(
+        data,
+        CryptoJS.enc.Utf8.parse(secretKey),
+        {
+          iv: CryptoJS.enc.Utf8.parse(Iv),
+          padding: CryptoJS.pad.Pkcs7,
+          mode: CryptoJS.mode.CBC,
+        }
+      );
+      decodeStr = cipher.toString(CryptoJS.enc.Utf8);
+    };
 
-        function aes256Encode(data, secretKey, Iv) {
-            const cipher = CryptoJS.AES.encrypt(
-                data,
-                CryptoJS.enc.Utf8.parse(secretKey),
-                {
-                    iv: CryptoJS.enc.Utf8.parse(Iv),
+    /** 
+     * SHA3 사용 해시값 생성 (Dv || Salt)
+     * 고유식별정보, salt(iv)
+    */
+    const getHash2sha3 = async (sourceData, salt) => {
+      return await CryptoJS.SHA3(sourceData + salt, { outputLength: 256 }).toString(CryptoJS.enc.Hex);
+    };
+
+    /** 해싱 및 암호화 처리 후, db 저장 요청 */
+    const hashData = async (mac, pk, salt) => {
+      console.group('해시 및 암호화')
+      console.log('암호화된 mac 주소:', mac);
+      
+      const saltItem = localStorage.getItem('salt');
+      const sha3Hash = await getHash2sha3(macAddr, saltItem); // 해시값 (Dv, salt);
+      console.log('해시값 h(Dv||salt): ',sha3Hash);
+
+      // 서버로부터 받은 Pk를 이용한 해시값(Dv||Salt) 암호화
+      const encryptor = new JSEncrypt();
+      encryptor.setPublicKey(pk);
+      const encrypted = encryptor.encrypt(sha3Hash);
+      console.log('암호문 (enc(h(Dv||salt), Pk):', encrypted);
+      console.groupEnd();
+
+      // 암호문 서버 전송 및 데이터베이스 저장
+      return await fetch('http://localhost:3002/setDb', {
+        method: 'POST',
+        body: JSON.stringify({
+          enc: encrypted
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(response => response.json())
+        .then(res => {
+          return res.id;
+        })
+        .catch(err => {
+          console.log('db 저장 에러 발생');
+          return err;
+        });
+    };
+
+    /** 검증 및 키 요청(verification & request key) */
+    const verify = async () => {
+      await getMacData().then(res => {
+        macAddr = res;
+      });
+      const saltItem = localStorage.getItem('salt');
+      console.log('verify salt', saltItem);
+      const sha3Hash = await getHash2sha3(macAddr, saltItem);
+      console.log('해시:', sha3Hash);
+
+      let newHash = null;
+      let newRandomKey2 = null;
+      const localEncryptedId = localStorage.getItem('encryptedId');
+
+      const checkHash = async () => {
+        originSecretKey = null;
+        return await fetch('http://localhost:3002/getNewHash', {
+          method: 'POST',
+          body: JSON.stringify({
+            hash: newHash,
+            newRandomKey2: newRandomKey2
+          }),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+          .then(response => response.json())
+          .then(res => {
+            console.log(res);
+            if(!res.error){
+              const { newR2Hash, cipherStr } = res;
+
+              // 기존 해시값 + 난수 r2를 해싱 처리한 값과 서버로부터 받은 해시값 비교
+              const existHash = CryptoJS.SHA3(sha3Hash + newRandomKey2, { outputLength: 256 }).toString(CryptoJS.enc.Hex);
+              if (newR2Hash === existHash) {
+                resultStr.innerText = '웹페이지 신뢰 ok';
+
+                /** 해시값의 원본 암호키 디코딩 */
+                const decryptCipher = CryptoJS.AES.decrypt(
+                  cipherStr,
+                  CryptoJS.enc.Utf8.parse(sha3Hash),
+                  {
+                    iv: CryptoJS.enc.Utf8.parse(""),
                     padding: CryptoJS.pad.Pkcs7,
                     mode: CryptoJS.mode.CBC,
-                }
-            );
+                  }
+                );
+                return decryptCipher.toString(CryptoJS.enc.Utf8);
+              } else {
+                resultStr.innerText = '웹페이지 신뢰 no';
+              }
+            } else {
+              console.log(res.error);
+              alert('해시 값 일치하지 않음');
+              loadInput.value = "";
+              return false;
+            }
+          })
+          .catch(err => {
+            console.log('새 해시값 전달 실패', err);
+            alert('새 해시값 전달 실패');
+            return false;
+          });
+      };
 
-            aes256EncodeData = cipher.toString();
-            console.log("encode data : " + aes256EncodeData);
+      if (!localEncryptedId) {
+        alert('id 값이 없음');
+        return false;
+      } else {
+        // router post => 서버에 id 전달 및 암호화 키 요청
+        await fetch('http://localhost:3002/getSecretKey', {
+          method: 'POST',
+          body: JSON.stringify({
+            id: localEncryptedId
+          }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+          .then(response => response.json())
+          .then(res => {
+            console.log('서버로부터 받은 새 암호키', res.newSecretKey);
+            // 기존 해시 값 + 서버로부터 받은 새 암호키 => 새로운 해시값 생성
+            const getNewSha3Hash = getHash2sha3(sha3Hash + res.newSecretKey, "");
+
+            getNewSha3Hash
+              .then(res => {
+                console.group('newHash & newSecretKey')
+                console.log('새 해시값 h(h(Dv||salt)||r1):', res);
+                newHash = res;
+              })
+              .catch(err => {
+                alert('새 해시값 생성 실패');
+                return false;
+              })
+              .finally(() => {
+                newRandomKey2 = genRandomKey(); // 난수 r2 생성
+                console.log('난수 r2:', newRandomKey2);
+                console.groupEnd();
+                checkHash().then(res => {
+                  if(!res){
+                    return false;
+                  } else {
+                    originSecretKey = res;
+                    console.log('originSecretKey:', originSecretKey);
+                  };
+                })
+              });
+          });
+      };
+    };
+
+    /** 
+     * 초기 등록(initialize)은 현재 무조건 실행하기에 iife로 해둠
+     * const initEncrypte = () => {};
+     * */
+    (() => {
+      const saltItem = localStorage.getItem('salt');
+      Promise.all([getMacData(), getPkData()])
+      .then(values => {
+        macAddr = values[0];
+        serverPk = values[1];
+        aes256Decode(macAddr, secretKey, saltItem);
+        console.log('저장된 salt 값:', saltItem);
+        console.log('원본 mac 주소:', decodeStr);
+      })
+      .catch(err => {
+        console.log('초기 등록 실패 에러:', err);
+      })
+      .finally(async () => {
+        const getHashData = await hashData(macAddr, serverPk, saltItem);
+        if (!getHashData) {
+          console.log('hash 생성 에러 발생');
+          return false;
+        } else {
+          console.log(getHashData);
+          localStorage.setItem('encryptedId', getHashData); // 전달받은 id 로컬스토리지 저장
+          verify();
         }
+      });
+    })();
 
-        //aes256SecretKey, aes256Iv, aes256EncodeData
-        function aes256Decode(data, secretKey, Iv) {
-            const cipher = CryptoJS.AES.decrypt(
-                data,
-                CryptoJS.enc.Utf8.parse(secretKey),
-                {
-                    iv: CryptoJS.enc.Utf8.parse(Iv),
-                    padding: CryptoJS.pad.Pkcs7,
-                    mode: CryptoJS.mode.CBC,
-                }
-            );
+    /** 암호키로 암호화 처리 후, 데이터 localStorage에 저장 */
+    const saveLocalStorage = async (data) => {
+      if (!originSecretKey) {
+        console.log('암호키 필요');
+        return false;
+      };
+      await verify().then(() => {
+        const testCipher = CryptoJS.AES.encrypt(
+          data,
+          CryptoJS.enc.Utf8.parse(originSecretKey),
+          {
+            iv: CryptoJS.enc.Utf8.parse(""),
+            padding: CryptoJS.pad.Pkcs7,
+            mode: CryptoJS.mode.CBC
+          }
+        );
+        localStorage.setItem('enc(Data)', testCipher.toString());
+        console.log(localStorage.getItem('enc(Data)'));
+      });
+    };
 
-            aes256DecodeData = cipher.toString(CryptoJS.enc.Utf8);
-            console.log("data : " + aes256DecodeData);
-        }
-    </script>
+    /** 암호키로 localStorage의 데이터 복호화 처리 후, load */
+    const LoadLocalStorageData = async (saltItem) => {
+      console.log('load salt item:', saltItem);
+      if (!originSecretKey) {
+        console.log('값이 잘못되었거나 암호키가 없음');
+        alert('값이 잘못되었거나 암호키가 없음');
+        loadInput.value = "";
+        return false;
+      } else if (!localStorage.getItem('enc(Data)')) {
+        console.log('저장된 값이 없음');
+        alert('값 저장 필요');
+        return false;
+      };
+      const getHashData = await hashData(macAddr, serverPk, saltItem);
+      if (!getHashData) {
+        console.log('hash 생성 에러 발생');
+        return false;
+      } else {
+        console.log(getHashData);
+        localStorage.setItem('encryptedId', getHashData); // 전달받은 id 로컬스토리지 저장
+
+        // 인증 및 키 요청
+        verify().then(() => {
+          let decryptedStr = null;
+          const testCipher = CryptoJS.AES.decrypt(
+            localStorage.getItem('enc(Data)'),
+            CryptoJS.enc.Utf8.parse(originSecretKey),
+            {
+              iv: CryptoJS.enc.Utf8.parse(""),
+              padding: CryptoJS.pad.Pkcs7,
+              mode: CryptoJS.mode.CBC
+            }
+          );
+          decryptedStr = testCipher.toString(CryptoJS.enc.Utf8);
+            console.log('decrpytedStr: ', decryptedStr);  
+            loadInput.value = testCipher.toString(CryptoJS.enc.Utf8);
+          if(testCipher.sigBytes <= 0){
+            alert('잘못된 접근입니다.');
+            loadInput.value = "";
+            return false;
+          } else {
+            decryptedStr = testCipher.toString(CryptoJS.enc.Utf8);
+            console.log('decrpytedStr: ', decryptedStr);  
+            loadInput.value = testCipher.toString(CryptoJS.enc.Utf8);
+          };
+        });
+      };
+    };
+    saveBtn.addEventListener('click', () => {
+      if(saveInput.value !==null && saveInput.value !==""){
+        saveLocalStorage(saveInput.value);
+      } else {
+        alert('값 입력 필요');
+        return false;
+      }
+    });
+
+    loadBtn.addEventListener('click', () => {
+      LoadLocalStorageData(localStorage.getItem('salt'));
+    });
+
+    // -- 테스트 코드 --
+    /** -- pk, sk로 암, 복호화 테스트 -> 성공 */
+    // console.log(mac)
+    // const privateKey = `${sk 넣기} `;
+    // var decrypt = new JSEncrypt();
+    // decrypt.setPrivateKey(privateKey);
+    // var uncrypted = decrypt.decrypt(encrypted);
+    // console.log('Decrypted:', uncrypted);
+
+    /** aes - test */
+    // const cipher = await CryptoJS.AES.encrypt(sha3Hash, pk, { iv: salt }); // 암호화
+    // console.log(cipher.toString())
+    // const decrypt = await CryptoJS.AES.decrypt(cipher, pk, { iv: salt }); // 복호화 test
+    // console.log(decrypt.toString());
+    // 임시
+    // encryptedId가 있을 경우
+    // if (localStorage.getItem('encryptedId')) {
+    //   verify();
+    // };
+
+    // // decoding
+    // getMacData().then(res => {
+    //   aes256Decode(res, secretKey, saltItem);
+    //   console.log(decodeStr);
+    //   macAddr = res;
+    // });
+
+    // // pk
+    // getPkData().then(res => {
+    //   serverPk = res;
+    //   hashData(macAddr, serverPk, saltItem);
+    // });
+  </script>
 </body>
 
 </html>
+
