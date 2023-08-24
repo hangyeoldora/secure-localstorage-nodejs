@@ -181,6 +181,39 @@
 
 - sequelize의 설정 파일(config.js)의 mySQL db 정보 및 고유 식별 정보 암&middot;복호화에 사용하는 공개키, 비밀키 값은 **환경 변수 파일(.env) 생성 필요** (server 폴더 최상단 위치)
 
+  ```javascript
+  MYSQL_USER = root
+  MYSQL_PASSWORD = lhg37099
+  MYSQL_DATABASE = testing
+  MYSQL_HOST = 127.0.0.1
+  DIALECT = mysql
+  MYSQL_PORT = 3306
+  
+  PRIV_PEM = `-----BEGIN RSA PRIVATE KEY-----
+  MIICXQIBAAKBgQC4Iu3CDzvbswzNRIqTxb59YE2UWX1u1VefR5G+kShQaPNshMXL
+  a469BqwkuhIO2000XYfE3mUZmhgCL6zQy/KGXZIoYBM7D54TOaJXfTw/NADmGu8x
+  mj/JpQf1jPxmskq0wSVPZpexfOBb6IJ0t291SafSaPMFgCqtV8fTaYXUVQIDAQAB
+  AoGAGGkI++DpHobt+4hKlqxwRE6v+iqi5j6CDyt9trWnkoFXQ9uWHRF1KrnnuDay
+  jiWkZny/sumInYxAAoovbr6at9uvEiz7h1sgYlh+pEnBoQrYNxYAEhMnLoxlH1zY
+  XEzRfacd0OLlIXYSnkw1iw+BYw5pgUwJp/YmI0bBsP+4Y0ECQQDjdIQUD1K0826A
+  qpe3+QL9YtB78kgubkr6YkzxKgcz4WQelgmLnTIZzXp5UdcvaASoA8OSTwCutu2t
+  OKXZ7eaTAkEAzz606gUxtHyD7jaMIm+0icrQ11oFnQxgY1lobs5U+ByheLvTRVma
+  ZrmlmBfir7xnNU67svV2cc2E023ylmOCdwJBAL0x4N8Ss9gCGKt7usFzpnH/7Kz8
+  pd/BLCrC838yV1VnKLFsWbpA4jimOzaIxbYQDrd2kgm0Hzw0utR4JzRz93MCQBTB
+  zxTxWD0fi4c8Z2S7k3WJnsky9wT3zF+nANK4T8JZ+8I/7bUweEp5paBKJCY91Ih+
+  TkZqV2amkvsqM/XkGZkCQQCDvyL+iuOoxOqpRlC2z8udAFqtPPyVqYbCAgth+Nw+
+  VavR7IfZ+BB9/v50nA4nFs4axoecK0tCFYIMWEmaQF1k
+  -----END RSA PRIVATE KEY-----`
+  
+  PUB_PEM = `-----BEGIN PUBLIC KEY-----
+  MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4Iu3CDzvbswzNRIqTxb59YE2UWX1u1VefR5G+kShQaPNshMXLa469BqwkuhIO2000XYfE3mUZmhgCL6zQy/KGXZIoYBM7D54TOaJXfTw/NADmGu8xmj/JpQf1jPxmskq0wSVPZpexfOBb6IJ0t291SafSaPMFgCqtV8fTaYXUVQIDAQAB
+  -----END PUBLIC KEY-----`
+  ```
+
+  
+
+- MySQL의 경우, 컴퓨터에 맞는 값으로 변경 필요
+
 - 실행
 
   ```powershell
