@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
+        integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+    <script>
+
+        const aes256SecretKey = "YrvfhEoPhjAGC28R1q78zkD2ydrEcIxs"; // key 값 32 바이트
+        const aes256Iv = CryptoJS.lib.WordArray.random(16); // iv 16 바이트
+        let aes256EncodeData = "";
+        let aes256DecodeData = "";
+
+        // 실행
+        (async ()=> {
+            const salt = await CryptoJS.lib.WordArray.random(16); // salt 난수 생성
+            
+            await aes256Encode("TEST", aes256SecretKey, aes256Iv);
+            await aes256Decode(aes256EncodeData, aes256SecretKey, aes256Iv); 
+
+            // var testing = await CryptoJS.SHA3(`amazing${salt.words.join("")}`, { outputLength: 128 });
+            // var salt2 = CryptoJS.lib.WordArray.random(16);
+
+            // var plaintext = "testing";
+            // var key = CryptoJS.PBKDF2("nice", salt2, { keySize: 256 / 32, iterations: 1000 });
+            // var encrypted = CryptoJS.AES.encrypt(plaintext, key, { iv: salt2 }); // data, key, iv
+            // var decrypted = CryptoJS.AES.decrypt(encrypted, key, { iv: salt2 });
+            // var encryptedHex = encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+            // var sha3Hash = CryptoJS.SHA3(encryptedHex, { outputLength: 256 });
+            // var hashedResult = sha3Hash.toString(CryptoJS.enc.Hex);
+            
+            // console.group('salt2 aes-sha3');
+            // console.log('key:', key);
+            // console.log('encrypted:', encrypted.toString());
+            // console.log('encryptedHex:', encryptedHex.toString());
+            // console.log('sha3Hash:', sha3Hash);
+            // console.log('hashedResult:', key);
+            // console.log('decrypted:', decrypted.toString());
+            // console.groupEnd();
+        })();
+
+        function aes256Encode(data, secretKey, Iv) {
+            const cipher = CryptoJS.AES.encrypt(
+                data,
+                CryptoJS.enc.Utf8.parse(secretKey),
+                {
+                    iv: CryptoJS.enc.Utf8.parse(Iv),
+                    padding: CryptoJS.pad.Pkcs7,
+                    mode: CryptoJS.mode.CBC,
+                }
+            );
+
+            aes256EncodeData = cipher.toString();
+            console.log("encode data : " + aes256EncodeData);
+        }
+
+        //aes256SecretKey, aes256Iv, aes256EncodeData
+        function aes256Decode(data, secretKey, Iv) {
+            const cipher = CryptoJS.AES.decrypt(
+                data,
+                CryptoJS.enc.Utf8.parse(secretKey),
+                {
+                    iv: CryptoJS.enc.Utf8.parse(Iv),
+                    padding: CryptoJS.pad.Pkcs7,
+                    mode: CryptoJS.mode.CBC,
+                }
+            );
+
+            aes256DecodeData = cipher.toString(CryptoJS.enc.Utf8);
+            console.log("data : " + aes256DecodeData);
+        }
+    </script>
+</body>
+
+</html>
