@@ -40,9 +40,8 @@
 - JSencrypt - 키 생성 요청 시, 해시값 암&middot;복호화
   - RSA 암호화 방식을 사용
 
-- CryptoJS 라이브러리 - [공식문서](https://cryptojs.gitbook.io/docs/){: target="_blank"}
-
-- JSencrypt 라이브러리 - [공식문서](https://travistidwell.com/jsencrypt/){: target="_blank"}
+- CryptoJS 라이브러리 - <a href="https://cryptojs.gitbook.io/docs/" target="_blank">공식문서</a>
+- JSencrypt 라이브러리 - <a href="https://travistidwell.com/jsencrypt/" target="_blank">공식문서</a>
 
   
 
