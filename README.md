@@ -140,7 +140,7 @@
 
 #### server
 
-###### 개요
+##### 개요
 
 - 고유식별정보(Mac 주소)가 필요하기 때문에 서버 구축 필요
 
@@ -249,6 +249,10 @@
 
   
 
+##### 에러 사항
+
+###### 1. salt값 변경
+
 - 암호화된 파일(enc(Data))이 로컬스토리지에 있는데 로컬스토리지가 초기화 되어 salt값이 재생성되었거나 salt 값이 변경되었을 경우 에러가 발생
 
   - 로컬스토리지의 해시값이 정상적인 경우
@@ -275,6 +279,10 @@
 
     <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/97ac3b1a-c055-4f58-bd55-62a63e4aa09e" alt="wrong-hash-image-4" />
 
+    
+
+###### 2. 암호화된 파일값 변경
+
 - 암호화된 파일(enc(Data))이 변경되었을 경우, 에러가 발생
 
   - 정상적인 경우
@@ -286,6 +294,8 @@
     <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/e29aba3e-22ec-46fb-9300-7be62df5ff98" alt="data-test2" />
 
     <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/4f5fab3f-2171-4a81-abe6-50d1edb87f16" alt="forgery-data"/>
+
+    
 
 - 결과 : 위에서 언급한 3가지 공격자 모델에 대한 취약점에 대해 안전
 
