@@ -57,12 +57,14 @@
       }
       #wrap .container input {
         width: 53%;
+        border-radius: 10px;
       }
       #wrap .container .input_sec button{
         width: 13%;
         background: none;
         padding: 5px 10px;
         border-radius: 10px;
+        cursor: pointer;
       }
     </style>
 </head>
@@ -392,7 +394,7 @@
             console.log('decrpytedStr: ', decryptedStr);  
             loadInput.value = testCipher.toString(CryptoJS.enc.Utf8);
           if(testCipher.sigBytes <= 0){
-            alert('잘못된 접근입니다.');
+            alert('잘못된 접근');
             loadInput.value = "";
             return false;
           } else {
