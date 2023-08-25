@@ -208,6 +208,7 @@
       let newRandomKey2 = null;
       const localEncryptedId = localStorage.getItem('encryptedId');
 
+      /** 해시값 비교 */
       const checkHash = async () => {
         originSecretKey = null;
         return await fetch('http://localhost:3002/getNewHash', {
@@ -343,7 +344,7 @@
         return false;
       };
       await verify().then(() => {
-        const testCipher = CryptoJS.AES.encrypt(
+        const saveCipher = CryptoJS.AES.encrypt(
           data,
           CryptoJS.enc.Utf8.parse(originSecretKey),
           {
@@ -352,7 +353,7 @@
             mode: CryptoJS.mode.CBC
           }
         );
-        localStorage.setItem('enc(Data)', testCipher.toString());
+        localStorage.setItem('enc(Data)', saveCipher.toString());
         console.log(localStorage.getItem('enc(Data)'));
       });
     };
@@ -381,7 +382,7 @@
         // 인증 및 키 요청
         verify().then(() => {
           let decryptedStr = null;
-          const testCipher = CryptoJS.AES.decrypt(
+          const loadCipher = CryptoJS.AES.decrypt(
             localStorage.getItem('enc(Data)'),
             CryptoJS.enc.Utf8.parse(originSecretKey),
             {
@@ -390,17 +391,17 @@
               mode: CryptoJS.mode.CBC
             }
           );
-          decryptedStr = testCipher.toString(CryptoJS.enc.Utf8);
-            console.log('decrpytedStr: ', decryptedStr);  
-            loadInput.value = testCipher.toString(CryptoJS.enc.Utf8);
-          if(testCipher.sigBytes <= 0){
+          decryptedStr = loadCipher.toString(CryptoJS.enc.Utf8);
+          console.log('decrpytedStr: ', decryptedStr);  
+          loadInput.value = loadCipher.toString(CryptoJS.enc.Utf8);
+          if(loadCipher.sigBytes <= 0){
             alert('잘못된 접근');
             loadInput.value = "";
             return false;
           } else {
-            decryptedStr = testCipher.toString(CryptoJS.enc.Utf8);
+            decryptedStr = loadCipher.toString(CryptoJS.enc.Utf8);
             console.log('decrpytedStr: ', decryptedStr);  
-            loadInput.value = testCipher.toString(CryptoJS.enc.Utf8);
+            loadInput.value = loadCipher.toString(CryptoJS.enc.Utf8);
           };
         });
       };
