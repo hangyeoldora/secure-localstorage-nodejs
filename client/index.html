@@ -194,7 +194,7 @@
         });
     };
 
-    /** 해시값 비교 */
+    /** 기존 해시값과 신규 해시값 비교. */
     const checkHash = async (sha3Hash, newHash, newRandomKey2) => {
       originSecretKey = null;
       return await fetch('http://localhost:3002/getNewHash', {
