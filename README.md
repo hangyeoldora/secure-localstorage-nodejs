@@ -32,12 +32,10 @@
   - 암호화에는 대칭키 암호화 방식 AES 사용
     - 운영모드는 'CBC'
   - 해싱은 SHA3 방식 사용
-
 - JSencrypt - 키 생성 요청 시, 해시값 암&middot;복호화
   - RSA 암호화 방식을 사용
-
-- CryptoJS 라이브러리 - <a href="https://cryptojs.gitbook.io/docs/" target="_blank">공식문서</a>
-- JSencrypt 라이브러리 - <a href="https://travistidwell.com/jsencrypt/" target="_blank">공식문서</a>
+- CryptoJS 라이브러리 - [공식문서](https://cryptojs.gitbook.io/docs/){:target="*_blank"}*
+- JSencrypt 라이브러리 - [공식문서](https://travistidwell.com/jsencrypt/){:target="*_blank"}*
 
 ### 단계
 
@@ -45,8 +43,8 @@
 
 - initialize
 - Verification & Request Key
-- Load
 - Save
+- Load
 
 #### 1. Initialize
 
@@ -77,6 +75,8 @@
    - 받은 암호문을 비밀키(Sk)로 복호화
    - hash와 key를 db에 저장하며, id는 인덱스에 필요하므로 autoIncrement 적용
    - 완료 status와 id를 클라이언트에 전달
+   
+   
 
 #### 2. Verification & Request Key
 
