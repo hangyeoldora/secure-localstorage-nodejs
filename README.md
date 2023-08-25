@@ -227,9 +227,65 @@
 
   
 
+  <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/13cfe73d-4e65-4212-98cf-3409720d2e43" alt="npm image" />
+
+
+
 - 실행 후, client/index.html 파일을 열고 콘솔창으로 확인
 
-- 최초 등록(Initialize)은 페이지에 접속 시에 자동으로 진행
+  <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/2bb9497f-3836-4577-921e-d686a620c2c4" alt="main page" />
 
-- 위에서 언급한 3가지 공격자 모델에 대한 취약점에 대해 안전
+  
+
+- 최초 등록(Initialize)은 페이지에 접속 시에 자동으로 진행되게 했기에 상태가 '대기 중'에서 '웹페이지 신뢰 OK'로 바뀌는 것을 확인할 수 있음
+
+- Console창과 localStorage 확인을 통해 값들이 정상적으로 들어갔는지 체크
+
+  <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/a253ea7c-3cca-4a1f-9ce7-226b6074df2b" alt="console image"/>
+
+  
+
+  <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/7ac45668-cd40-433d-a0a2-3efcf7658b07"  alt=" localstorage image" />
+
+  
+
+- 암호화된 파일(enc(Data))이 로컬스토리지에 있는데 로컬스토리지가 초기화 되어 salt값이 재생성되었거나 salt 값이 변경되었을 경우 에러가 발생
+
+  - 로컬스토리지의 해시값이 정상적인 경우
+
+  <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/e1ce992b-2435-4238-b391-09dbb89d3805" alt="origin-hash-image"/>
+
+  
+
+  - 해시값을 변경하였을 경우, 에러 발생 
+
+    정상 해시값: e51231904a4e26390d80271a33ee01a933
+
+    변경 해시값: e12341904a4e26390d80271a33ee01a933
+
+    <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/2f4a8c38-a068-4469-a28f-aa38786bb590" alt="wrong-hash-image-1"/>
+
+    
+
+  - 재시도하였을 경우, '값이 잘못되었거나 암호키가 없음'이라는 문구 출력
+
+    <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/4e988723-07b3-4ecc-96a1-5942a88f503a" alt="wrong-hash-3" />
+
+  - 새로고침이나 재접속을 하였을 경우, '잘못된 접근'이라는 문구 출력
+
+    <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/97ac3b1a-c055-4f58-bd55-62a63e4aa09e" alt="wrong-hash-image-4" />
+
+- 암호화된 파일(enc(Data))이 변경되었을 경우, 에러가 발생
+
+  - 정상적인 경우
+
+    <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/55fe8c66-72ea-4d89-b19b-0678af3ff870" alt="data-test-1"/>
+
+  - 값을 변경했을 경우
+
+    <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/e29aba3e-22ec-46fb-9300-7be62df5ff98" alt="data-test2" />
+
+    <img src="https://github.com/hangyeoldora/security-localstorage-nodejs/assets/50001184/4f5fab3f-2171-4a81-abe6-50d1edb87f16" alt="forgery-data"/>
+
+- 결과 : 위에서 언급한 3가지 공격자 모델에 대한 취약점에 대해 안전
 
