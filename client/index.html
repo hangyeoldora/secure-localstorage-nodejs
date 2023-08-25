@@ -194,6 +194,58 @@
         });
     };
 
+    /** 해시값 비교 */
+    const checkHash = async (sha3Hash, newHash, newRandomKey2) => {
+      originSecretKey = null;
+      return await fetch('http://localhost:3002/getNewHash', {
+        method: 'POST',
+        body: JSON.stringify({
+          hash: newHash,
+          newRandomKey2: newRandomKey2
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+        .then(response => response.json())
+        .then(res => {
+          console.log(res);
+          if (!res.error) {
+            const { newR2Hash, cipherStr } = res;
+
+            // 기존 해시값 + 난수 r2를 해싱 처리한 값과 서버로부터 받은 해시값 비교
+            const existHash = CryptoJS.SHA3(sha3Hash + newRandomKey2, { outputLength: 256 }).toString(CryptoJS.enc.Hex);
+            if (newR2Hash === existHash) {
+              resultStr.innerText = '상태: 웹페이지 신뢰 ok';
+
+              /** 해시값의 원본 암호키 디코딩 */
+              const decryptCipher = CryptoJS.AES.decrypt(
+                cipherStr,
+                CryptoJS.enc.Utf8.parse(sha3Hash),
+                {
+                  iv: CryptoJS.enc.Utf8.parse(""),
+                  padding: CryptoJS.pad.Pkcs7,
+                  mode: CryptoJS.mode.CBC,
+                }
+              );
+              return decryptCipher.toString(CryptoJS.enc.Utf8);
+            } else {
+              resultStr.innerText = '상태: 웹페이지 신뢰 no';
+            }
+          } else {
+            console.log(res.error);
+            alert('해시 값 일치하지 않음');
+            loadInput.value = "";
+            return false;
+          }
+        })
+        .catch(err => {
+          console.log('새 해시값 전달 실패', err);
+          alert('새 해시값 전달 실패');
+          return false;
+        });
+    };
+
     /** 검증 및 키 요청(verification & request key) */
     const verify = async () => {
       await getMacData().then(res => {
@@ -207,58 +259,6 @@
       let newHash = null;
       let newRandomKey2 = null;
       const localEncryptedId = localStorage.getItem('encryptedId');
-
-      /** 해시값 비교 */
-      const checkHash = async () => {
-        originSecretKey = null;
-        return await fetch('http://localhost:3002/getNewHash', {
-          method: 'POST',
-          body: JSON.stringify({
-            hash: newHash,
-            newRandomKey2: newRandomKey2
-          }),
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
-          .then(response => response.json())
-          .then(res => {
-            console.log(res);
-            if(!res.error){
-              const { newR2Hash, cipherStr } = res;
-
-              // 기존 해시값 + 난수 r2를 해싱 처리한 값과 서버로부터 받은 해시값 비교
-              const existHash = CryptoJS.SHA3(sha3Hash + newRandomKey2, { outputLength: 256 }).toString(CryptoJS.enc.Hex);
-              if (newR2Hash === existHash) {
-                resultStr.innerText = '상태: 웹페이지 신뢰 ok';
-
-                /** 해시값의 원본 암호키 디코딩 */
-                const decryptCipher = CryptoJS.AES.decrypt(
-                  cipherStr,
-                  CryptoJS.enc.Utf8.parse(sha3Hash),
-                  {
-                    iv: CryptoJS.enc.Utf8.parse(""),
-                    padding: CryptoJS.pad.Pkcs7,
-                    mode: CryptoJS.mode.CBC,
-                  }
-                );
-                return decryptCipher.toString(CryptoJS.enc.Utf8);
-              } else {
-                resultStr.innerText = '상태: 웹페이지 신뢰 no';
-              }
-            } else {
-              console.log(res.error);
-              alert('해시 값 일치하지 않음');
-              loadInput.value = "";
-              return false;
-            }
-          })
-          .catch(err => {
-            console.log('새 해시값 전달 실패', err);
-            alert('새 해시값 전달 실패');
-            return false;
-          });
-      };
 
       if (!localEncryptedId) {
         alert('id 값이 없음');
@@ -294,7 +294,7 @@
                 newRandomKey2 = genRandomKey(); // 난수 r2 생성
                 console.log('난수 r2:', newRandomKey2);
                 console.groupEnd();
-                checkHash().then(res => {
+                checkHash(sha3Hash, newHash, newRandomKey2).then(res => {
                   if(!res){
                     return false;
                   } else {
