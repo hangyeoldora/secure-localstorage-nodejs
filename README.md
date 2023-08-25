@@ -16,6 +16,8 @@
     - 도메인 위조 - salt 값
     - 다른 디바이스에서 접속 - Mac 주소
     - 암호화 파일 위조 - 해시값 변경
+    
+    
 
 ### 중점 요소
 
@@ -26,16 +28,23 @@
 - 디바이스 고유 식별 정보는 로컬스토리지에 저장하지 않음
 - 인증 프로토콜은 난수 기반으로 인증을 함
 
+
+
 ### 암호화 라이브러리
 
 - CryptoJS - 암호화 및 해싱
   - 암호화에는 대칭키 암호화 방식 AES 사용
     - 운영모드는 'CBC'
   - 해싱은 SHA3 방식 사용
+
 - JSencrypt - 키 생성 요청 시, 해시값 암&middot;복호화
   - RSA 암호화 방식을 사용
-- CryptoJS 라이브러리 - [공식문서](https://cryptojs.gitbook.io/docs/){:target="*_blank"}*
-- JSencrypt 라이브러리 - [공식문서](https://travistidwell.com/jsencrypt/){:target="*_blank"}*
+
+- CryptoJS 라이브러리 - [공식문서](https://cryptojs.gitbook.io/docs/){: target="_blank"}
+
+- JSencrypt 라이브러리 - [공식문서](https://travistidwell.com/jsencrypt/){: target="_blank"}
+
+  
 
 ### 단계
 
