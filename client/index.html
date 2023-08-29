@@ -331,9 +331,9 @@
           console.log('hash 생성 에러 발생');
           return false;
         } else {
-          console.log(getHashData);
           localStorage.setItem('encryptedId', getHashData); // 전달받은 id 로컬스토리지 저장
-          verify();
+          await verify();
+          console.log(getHashData);
         }
       });
     })();
