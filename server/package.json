@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "engines" : { 
-    "node" : "16.19.1"
+  "engines": {
+    "node": "16.19.1"
   },
   "scripts": {
     "devStart": "nodemon index.js",
@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/hangyeoldora/security-localstorage-nodejs#readme",
   "dependencies": {
-    "axios": "^1.4.0",
     "cors": "^2.8.5",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.3.1",
