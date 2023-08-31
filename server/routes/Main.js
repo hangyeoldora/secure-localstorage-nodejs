@@ -153,33 +153,3 @@ router.post("/getNewHash", async ( req, res ) => {
 });
 
 module.exports = router;
-
-// const key = CryptoJS.PBKDF2("nice", salt, { keySize: 256 / 32, iterations: 1000 });
-// const encrypted = CryptoJS.AES.encrypt(macAddr, privateKey, { iv: salt });
-// const encryptedHex = encrypted.ciphertext.toString(CryptoJS.enc.Hex);
-// const sha3Hash = CryptoJS.SHA3(encryptedHex, { outputLength: 256 });
-// const decrypted = CryptoJS.AES.decrypt(encrypted, privateKey, {iv: salt});
-// const encryptedHex = encrypted.ciphertext.toString(CryptoJS.enc.Hex);
-// const sha3Hash = CryptoJS.SHA3(encryptedHex, { outputLength: 256 });
-// const decrypted = CryptoJS.AES.decrypt(encrypted, key, {iv: salt});
-// console.log('key:', key);
-// console.log('encrypted:', encrypted);
-// console.log('encryptedHex:', encryptedHex);
-// console.log('sha3Hash:', sha3Hash);
-// console.log('hashedResult:', key);
-
- // aes 복호화 처리
-//  function decode2aes(data, secretKey, salt) {
-//   const cipher = CryptoJS.AES.decrypt(
-//     data,
-//     CryptoJS.enc.Utf8.parse(secretKey),
-//     {
-//       iv: CryptoJS.enc.Utf8.parse(salt),
-//       padding: CryptoJS.pad.Pkcs7,
-//       mode: CryptoJS.mode.CBC,
-//     }
-//   );
-
-//   decodeStr = cipher.toString(CryptoJS.enc.Utf8);
-//   console.log("data : " + cipher);
-// }
