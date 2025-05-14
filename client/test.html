@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>웹 로컬스토리지 암&middot;복호화</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
+    integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.min.js"
+    integrity="sha512-zDvrqenA0eFJZCxBsryzUZcvihvNlEXbteMv62yRxdhR4s7K1aaz+LjsRyfk6M+YJLyAJEuuquIAI8I8GgLC8A=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+
+<body>
+  <div id="wrap">
+    <div class="container">
+      <h2 class="security_title">웹 로컬스토리지 암&middot;복호화</h2>
+      <p class="resultStr">상태: 대기 중</p>
+      <div class="input_sec">
+        <label>저장할 문구 입력 : </label>
+        <input class="saveItem" type="text" />
+        <button class="saveBtn" type="button">저장</button>
+      </div>
+      <div class="input_sec">
+        <label>저장된 파일 불러오기 : </label>
+        <input class="loadItem" type="text" readonly />
+        <button class="loadBtn" type="button">불러오기</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const appState = {
+      LOCAL_SERVER_URL: "http://localhost:3002",
+      secretKey: "YrvfhEoPhjAGC28R1q78zkD2ydrEcIxs",
+      encryptedMacAddr: null,
+      publicKey: null,
+      originSecretKey: null,
+    };
+
+    const elements = {
+      resultStr: document.querySelector('.resultStr'),
+      saveBtn: document.querySelector('.saveBtn'),
+      loadBtn: document.querySelector('.loadBtn'),
+      saveInput: document.querySelector('.saveItem'),
+      loadInput: document.querySelector('.loadItem'),
+    };
+
+    // salt 생성
+    const initializeSalt = () => {
+      if (!localStorage.getItem('salt')) {
+        const salt = CryptoJS.lib.WordArray.random(128 / 8).toString(CryptoJS.enc.Hex);
+        localStorage.setItem('salt', salt);
+      }
+    };
+
+    /** fetch 설정 */
+    const fetchData = async (url, method, body = null) => {
+      try {
+        const response = await fetch(url, {
+          method,
+          body: body ? JSON.stringify(body) : null,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        return await response.json();
+      } catch (error) {
+        console.error(`Error fetching ${url}:`, error);
+        throw error;
+      }
+    };
+
+    /** SHA3 사용 해시값 생성 (Dv || Salt) */
+    const getHashTosha3 = (sourceData, salt) => {
+      return CryptoJS.SHA3(sourceData + salt, { outputLength: 256 }).toString(CryptoJS.enc.Hex);
+    };
+
+    /** 해싱 및 암호화 처리 후, db 저장 요청 */
+    const saveEncryptedHashToDb = async () => {
+      console.group("해시 및 암호화");
+      console.log("암호화된 mac 주소:", mac);
+      console.log("서버 공개키:", pk);
+      const salt = localStorage.getItem("salt");
+      const sha3Hash = getHashTosha3(appState.encryptedMacAddr, salt);  // 해시값 생성 (Dv, salt);
+
+      // 서버로부터 받은 Pk를 이용한 해시값(Dv||Salt) 암호화
+      const encryptor = new JSEncrypt();
+      encryptor.setPublicKey(appState.publicKey);
+      const encrypted = encryptor.encrypt(sha3Hash);
+      console.log("암호문 (enc(h(Dv||salt), Pk):", encrypted);
+      console.groupEnd();
+      console.log('==================================================================================');
+
+      const response = await fetchData(`${appState.LOCAL_SERVER_URL}/setDb`, "POST", { enc: encrypted });
+      return response.id;
+    };
+   
+    /** 
+     * 검증 및 키 요청 (verification & request key)
+     * - 클라이언트와 서버간 암호화된 해시값을 비교하여 브라우저의 신뢰성 검증
+     */
+    const verify = async () => {
+      const salt = localStorage.getItem("salt");
+      const sha3Hash = getHashTosha3(appState.encryptedMacAddr, salt);
+
+      const localDbUniqueId = localStorage.getItem("dbUniqueId");
+      if (!localDbUniqueId) {
+        alert("ID 값이 없습니다.");
+        return false;
+      }
+      const response = await fetchData(`${appState.LOCAL_SERVER_URL}/getSecretKey`, "POST", { id: localDbUniqueId });
+      const newHash = getHashTosha3(sha3Hash + response.newSecretKey, "");
+      const newRandomKey2 = generateRandomKey();
+
+      const verificationResponse = await fetchData(`${appState.LOCAL_SERVER_URL}/getNewHash`, "POST", {
+        hash: newHash,
+        newRandomKey2,
+      });
+
+      if (verificationResponse.newR2Hash === getHashTosha3(sha3Hash + newRandomKey2, "")) {
+        elements.resultStr.innerText = "상태: 웹페이지 신뢰 OK";
+        appState.originSecretKey = CryptoJS.AES.decrypt(
+          verificationResponse.cipherStr,
+          CryptoJS.enc.Utf8.parse(sha3Hash),
+          { iv: CryptoJS.enc.Utf8.parse(""), padding: CryptoJS.pad.Pkcs7, mode: CryptoJS.mode.CBC }
+        ).toString(CryptoJS.enc.Utf8);
+      } else {
+        elements.resultStr.innerText = "상태: 웹페이지 신뢰 NO";
+        throw new Error("Verification failed");
+      }
+    };
+
+    const generateRandomKey = () => {
+      const charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      return Array.from({ length: 32 }, () => charSet.charAt(Math.floor(Math.random() * charSet.length))).join("");
+    };
+
+    const saveLocalStorage = async (data) => {
+      await verify();
+      if (!appState.originSecretKey) {
+        alert("암호키가 필요합니다.");
+        return;
+      }
+
+      const encryptedData = CryptoJS.AES.encrypt(
+        data,
+        CryptoJS.enc.Utf8.parse(appState.originSecretKey),
+        { iv: CryptoJS.enc.Utf8.parse(""), padding: CryptoJS.pad.Pkcs7, mode: CryptoJS.mode.CBC }
+      ).toString();
+
+      localStorage.setItem("enc(Data)", encryptedData);
+      console.log("저장된 데이터:", encryptedData);
+    };
+
+    const loadLocalStorageData = async () => {
+      await verify();
+      if (!appState.originSecretKey || !localStorage.getItem("enc(Data)")) {
+        alert("저장된 데이터가 없거나 암호키가 없습니다.");
+        return;
+      }
+
+      const decryptedData = CryptoJS.AES.decrypt(
+        localStorage.getItem("enc(Data)"),
+        CryptoJS.enc.Utf8.parse(appState.originSecretKey),
+        { iv: CryptoJS.enc.Utf8.parse(""), padding: CryptoJS.pad.Pkcs7, mode: CryptoJS.mode.CBC }
+      ).toString(CryptoJS.enc.Utf8);
+
+      elements.loadInput.value = decryptedData || "복호화 실패";
+    };
+
+    const initializeApp = async () => {
+      initializeSalt();
+      const [macData, pkData] = await Promise.all([fetchData(`${appState.LOCAL_SERVER_URL}/getMac`, "POST"), fetchData(`${appState.LOCAL_SERVER_URL}/getPk`, "GET")]);
+      appState.encryptedMacAddr = macData.macAddress;
+      appState.publicKey = pkData.pk;
+
+      const dbUniqueId = await saveEncryptedHashToDb();
+      localStorage.setItem("dbUniqueId", dbUniqueId);
+      await verify();
+    };
+
+    elements.saveBtn.addEventListener("click", () => {
+      if (elements.saveInput.value) {
+        saveLocalStorage(elements.saveInput.value);
+      } else {
+        alert("값을 입력하세요.");
+      }
+    });
+
+    elements.loadBtn.addEventListener("click", loadLocalStorageData);
+
+    initializeApp();
+  </script>
+</body>
+
+</html>

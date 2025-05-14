@@ -7,7 +7,7 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
-const mainRotuer = require("./routes/Main");
+const mainRotuer = require("./routes/main.route");
 app.use("/", mainRotuer);
 
 db.sequelize.sync().then(() => {

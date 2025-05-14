@@ -1,10 +1,10 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is a Node.js server that provides an API for encrypting and decrypting data using AES encryption. It also includes a MySQL database connection using Sequelize ORM.",
   "main": "index.js",
   "engines": {
-    "node": "16.19.1"
+    "node": "18.20.6"
   },
   "scripts": {
     "devStart": "nodemon index.js",
@@ -21,12 +21,22 @@
   "bugs": {
     "url": "https://github.com/hangyeoldora/security-localstorage-nodejs/issues"
   },
+  "keywords": [
+    "nodejs",
+    "security",
+    "localstorage",
+    "encryption",
+    "decryption",
+    "mysql",
+    "sequelize"
+  ],
   "homepage": "https://github.com/hangyeoldora/security-localstorage-nodejs#readme",
   "dependencies": {
     "cors": "^2.8.5",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "joi": "^17.13.3",
     "macaddress": "^0.5.3",
     "mysql2": "^3.6.0",
     "nodejs-jsencrypt": "^3.0.0-rc.1",

@@ -1,0 +1,63 @@
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+}
+
+#wrap {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#wrap .container {
+  width: 80%;
+  height: 80%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#wrap .container .security_title {
+  margin-bottom: 30px;
+}
+
+#wrap .container .resultStr {
+  margin-bottom: 25px;
+  font-size: 1.2em;
+  font-weight: 700;
+}
+
+#wrap .container .input_sec {
+  width: 65%;
+  display: flex;
+  justify-content: space-between;
+}
+
+#wrap .container .input_sec:not(:last-child) {
+  margin-bottom: 30px;
+}
+
+#wrap .container label {
+  width: 28%;
+}
+
+#wrap .container input {
+  width: 53%;
+  border-radius: 10px;
+}
+
+#wrap .container .input_sec button {
+  width: 13%;
+  background: none;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}

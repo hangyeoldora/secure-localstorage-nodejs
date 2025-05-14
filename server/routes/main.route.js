@@ -14,9 +14,9 @@ let findId = null;
 let aesIv = null;
 
 /** 난수 생성 */
-const genRandomKey = () => {
-  const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let randKey = '';
+const generateRandomKey = () => {
+  const charSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let randKey = "";
   for (let i = 0; i < 32; i++) {
     randKey += charSet.charAt(Math.floor(Math.random() * charSet.length));
   };
@@ -41,15 +41,16 @@ router.post("/getMac", async (req, res) => {
       }
     );
     encodeStr = cipher.toString();
-   
     res.send({ macAddress: encodeStr }); // 암호화된 mac 주소 전송
     res.status(200).end()
   });
 });
 
-// 공개키
+
 router.get("/getPk", async ( req, res ) => {
+  console.log('process.env.PUB_PEM: ', process.env.PUB_PEM);
   res.send({ pk: process.env.PUB_PEM });
+
   res.status(200).end();
 });
 
@@ -61,7 +62,8 @@ router.post("/setDb", async ( req, res ) => {
   decrypt.setPrivateKey(process.env.PRIV_PEM);
   const uncrypted = decrypt.decrypt(enc);
   console.log(uncrypted);
-  const newSecretKey = genRandomKey();
+  const newSecretKey = generateRandomKey();
+  console.log('newSecretKey: ', newSecretKey);
 
   // encrytedIds 테이블 내 데이터 여부 확인
   const idIns = await encryptedId.findOne({
@@ -98,7 +100,7 @@ router.post("/getSecretKey", async ( req, res ) => {
   } else {
     findId = id;
     console.log('id 있음');
-    newRandomKey = genRandomKey(); // 난수 r1 생성
+    newRandomKey = generateRandomKey(); // 난수 r1 생성
     res.json({newSecretKey:newRandomKey});
     res.status(200).end();
   };
@@ -126,12 +128,14 @@ router.post("/getNewHash", async ( req, res ) => {
   } else {
     const existHash = CryptoJS.SHA3(idIns?.dataValues?.hash + newRandomKey, { outputLength: 256 }).toString(CryptoJS.enc.Hex);
 
-    // h(h(Dv||salt)||r1)과 h(h(Dv||salt)||r2) 해시값 비교
+    // existHash -> h(h(Dv||salt)||r1)과 h(h(Dv||salt)||r2) 해시값 비교
     if(existHash === hash){
       console.log('해시 값이 동일함');
-      // 중복 제거 필요
+      // 새로운 해시값 생성
       const newR2Hash = CryptoJS.SHA3(idIns?.dataValues?.hash + newRandomKey2, { outputLength: 256 }).toString(CryptoJS.enc.Hex);
       console.log(idIns?.dataValues?.hash);
+      
+      // db의 암호키를 db에 저장된 해시값으로 AES 암호화하여 암호문(enc(Key, h(Dv||salt))) 생성
       const cipherStr = CryptoJS.AES.encrypt(
         idIns?.dataValues?.key,
         CryptoJS.enc.Utf8.parse(idIns?.dataValues?.hash),
